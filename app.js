@@ -33,7 +33,6 @@ function renderLink(link) {
       <p><strong>Descripción:</strong> ${link.description}</p>
       <p><strong>Etiquetas:</strong> ${link.tags?.join(", ") || "Sin etiquetas"}</p>
       <button onclick="navigate('details', '${link._id}')">Ver detalles</button>
-      <button onclick="navigate('comment', '${link._id}')">Comentar</button>
     </div>`;
 }
 
@@ -41,17 +40,17 @@ function renderLink(link) {
 async function loadLinkDetails(linkId) {
   const commentsList = document.getElementById("commentsList");
   const votesContainer = document.getElementById("votesContainer");
-
   try {
     const link = await fetch(`${API_URL}/links/${linkId}`).then(handleHTTPError);
     const comments = await fetch(`${API_URL}/comments/${linkId}`).then(handleHTTPError);
 
     commentsList.innerHTML = comments.length
-      ? comments.map(comment => renderComment(comment)).join("")
+      ? comments.map(
+        comment => renderComment(comment)).join("")
       : "<p>No hay comentarios para mostrar.</p>";
 
     votesContainer.innerHTML = `<p><strong>Votos:</strong> ${link.votes || 0}</p>`;
-    document.getElementById("voteButton").onclick = () => voteLink(linkId);
+
   } catch (error) {
     commentsList.innerHTML = `<p>Error al cargar los detalles: ${error.message}</p>`;
   }
@@ -141,11 +140,12 @@ function navigate(view, linkId = null) {
   switch (view) {
     case "home":
       app.innerHTML = `
-        <h2>Home</h2>
         <input type="text" id="tag-filter" placeholder="Filtrar por etiqueta" />
         <button id="filter-button">Filtrar</button>
-        <button id="save-link-button">Guardar enlace</button>
-        <div id="links-container"></div>`;
+        <div id="links-container"></div>
+        <button id="save-link-button">Crear enlace</button>
+        `;
+        
 
       showLinks();
       document.getElementById("filter-button").onclick = () => showLinks(document.getElementById("tag-filter").value);
@@ -157,15 +157,20 @@ function navigate(view, linkId = null) {
         <h2>Detalles</h2>
         <div id="commentsList"></div>
         <div id="votesContainer"></div>
-        <button id="voteButton">Votar</button>`;
+        <button id="voteButton">Votar</button>
+        <button id="commentButton">Comentar</button>
+        <button onclick="navigate('home')">Volver</button>`;
       loadLinkDetails(linkId);
+      document.getElementById("voteButton").onclick = () => voteLink(linkId);
+      document.getElementById("commentButton").onclick = () => navigate("comment", linkId);
+
       break;
 
     case "savelink":
       app.innerHTML = `
       <div>
-        <input type="text" id="link-title" placeholder="Título del enlace" />
-        <input type="url" id="link-url" placeholder="URL del enlace" />
+        <input type="text" id="link-title" placeholder="Título del enlace"required />
+        <input type="url" id="link-url" placeholder="URL del enlace" required />
         <input type="text" id="link-description" placeholder="Descripción del enlace" />
         <input type="text" id="link-tags" placeholder="Etiquetas (separadas por comas)" />
         <button id="save-link-button">Guardar enlace</button>
@@ -180,7 +185,7 @@ function navigate(view, linkId = null) {
         <h2>Comentar</h2>
         <textarea id="commentInput" placeholder="Escribe tu comentario aquí"></textarea>
         <button id="submitComment">Enviar</button>
-        <button onclick="navigate('home')">Volver</button>`;
+        <button onclick="navigate('details', '${linkId}')">Volver</button>`;
       document.getElementById("submitComment").onclick = () => commentLink(linkId);
       break;
 
