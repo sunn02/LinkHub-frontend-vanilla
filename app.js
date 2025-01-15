@@ -44,11 +44,14 @@ async function loadLinkDetails(linkId) {
     const link = await fetch(`${API_URL}/links/${linkId}`).then(handleHTTPError);
     const comments = await fetch(`${API_URL}/comments/${linkId}`).then(handleHTTPError);
 
-    commentsList.innerHTML = comments.length
-      ? comments.map(
-        comment => renderComment(comment)).join("")
-      : "<p>No hay comentarios para mostrar.</p>";
-
+    commentsList.innerHTML = `
+    <div>
+      <p><strong>Comentarios:</strong></p>
+      ${comments.length
+        ? `<ul>${comments.map(comment => renderComment(comment)).join("")}</ul>`
+        : "<p>No hay comentarios para mostrar.</p>"}
+    </div>
+    `;
     votesContainer.innerHTML = `<p><strong>Votos:</strong> ${link.votes || 0}</p>`;
 
   } catch (error) {
@@ -58,11 +61,7 @@ async function loadLinkDetails(linkId) {
 
 // Renderizar comentario
 function renderComment(comment) {
-  return `
-    <div>
-      <p><strong>Comentario:</strong> ${comment.content}</p>
-      <p><strong>Fecha:</strong> ${new Date(comment.createdAt).toLocaleString()}</p>
-    </div>`;
+  return `<li>${comment.content}</li>`;
 }
 
 // Votar enlace
