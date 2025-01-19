@@ -20,7 +20,7 @@ async function showLinks(tagFilter = null) {
       ? links.map(link => renderLink(link)).join("")
       : "<p>No se encontraron enlaces.</p>";
   } catch (error) {
-    linksContainer.innerHTML = `<p>Error al cargar los enlaces: ${error.message}</p>`;
+    linksContainer.innerHTML = `<p>No se encontraron enlaces</p>`;
   }
 }
 
@@ -28,10 +28,10 @@ async function showLinks(tagFilter = null) {
 function renderLink(link) {
   return `
     <div>
-      <p><strong>Título:</strong> ${link.title}</p>
-      <p><strong>URL:</strong> <a href="${link.url}" target="_blank">${link.url}</a></p>
-      <p><strong>Descripción:</strong> ${link.description}</p>
-      <p><strong>Etiquetas:</strong> ${link.tags?.join(", ") || "Sin etiquetas"}</p>
+      <p><strong>${link.title}</strong></p>
+      <p><a href="${link.url}" target="_blank">${link.url}</a></p>
+      <p>${link.description}</p>
+      <p><strong>Tags:</strong> ${link.tags?.join(", ") || "Sin etiquetas"}</p>
       <button onclick="navigate('details', '${link._id}')">Ver detalles</button>
     </div>`;
 }
@@ -93,8 +93,9 @@ async function commentLink(linkId) {
       body: JSON.stringify({ content: comment }),
     });
     await handleHTTPError(response);
-    alert("Comentario enviado con éxito.");
+    console.log("Comentario enviado con éxito.");
     commentInput.value = "";
+    loadLinkDetails(linkId)
   } catch (error) {
     alert(`Error al enviar el comentario: ${error.message}`);
   }
@@ -140,28 +141,32 @@ function navigate(view, linkId = null) {
     case "home":
       app.innerHTML = `
         <input type="text" id="tag-filter" placeholder="Filtrar por etiqueta" />
-        <button id="filter-button">Filtrar</button>
         <div id="links-container"></div>
-        <button id="save-link-button">Crear enlace</button>
+        <button id="save-link-button">Añadir enlace</button>
         `;
         
-
       showLinks();
-      document.getElementById("filter-button").onclick = () => showLinks(document.getElementById("tag-filter").value);
+      document.getElementById("tag-filter").addEventListener("input", (event) => {
+        showLinks(event.target.value);
+      });
       document.getElementById("save-link-button").onclick = () => navigate("savelink");
       break;
 
     case "details":
       app.innerHTML = `
         <h2>Detalles</h2>
-        <div id="commentsList"></div>
         <div id="votesContainer"></div>
         <button id="voteButton">Votar</button>
-        <button id="commentButton">Comentar</button>
+
+        <div id="commentsList"></div>
+
+        <textarea id="commentInput" placeholder="Escribe tu comentario aquí"></textarea>
+        <button id="submitComment">Enviar</button>
+
         <button onclick="navigate('home')">Volver</button>`;
       loadLinkDetails(linkId);
+      document.getElementById("submitComment").onclick = () => commentLink(linkId);
       document.getElementById("voteButton").onclick = () => voteLink(linkId);
-      document.getElementById("commentButton").onclick = () => navigate("comment", linkId);
 
       break;
 
@@ -179,21 +184,12 @@ function navigate(view, linkId = null) {
       document.getElementById("save-link-button").onclick = () => saveLink();
       break;
 
-    case "comment":
-      app.innerHTML = `
-        <h2>Comentar</h2>
-        <textarea id="commentInput" placeholder="Escribe tu comentario aquí"></textarea>
-        <button id="submitComment">Enviar</button>
-        <button onclick="navigate('details', '${linkId}')">Volver</button>`;
-      document.getElementById("submitComment").onclick = () => commentLink(linkId);
-      break;
-
     default:
       app.innerHTML = `<p>Página no encontrada.</p>`;
   }
 }
 
 //Eventos para cambiar entre vistas
-document.getElementById("nav-home").addEventListener("click", () => navigate("home"));
+// document.getElementById("nav-home").addEventListener("click", () => navigate("home"));
 // document.getElementById("nav-details").addEventListener("click", () => navigate("details"));
 navigate("home");
