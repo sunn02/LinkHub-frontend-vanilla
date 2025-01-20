@@ -9,19 +9,22 @@ function handleHTTPError(response) {
 }
 
 // Mostrar enlaces
-async function showLinks(tagFilter = null) {
+async function showLinks(tagFilter = '') {
   const linksContainer = document.getElementById("links-container");
   const url = tagFilter ? `${API_URL}/links/tags/${tagFilter}` : `${API_URL}/links`;
 
-  try {
-    const response = await fetch(url);
-    const links = await handleHTTPError(response);
-    linksContainer.innerHTML = links.length
-      ? links.map(link => renderLink(link)).join("")
-      : "<p>No se encontraron enlaces.</p>";
-  } catch (error) {
-    linksContainer.innerHTML = `<p>No se encontraron enlaces</p>`;
-  }
+  const response = await fetch(url);
+  const links = await handleHTTPError(response);
+  
+  linksContainer.innerHTML = links.length
+    ? links.map(link => renderLink(link)).join("")
+    : "<p>No se encontraron enlaces.</p>";
+
+}
+
+function filterLinks() {
+  const tagFilter = document.getElementById("tag-filter").value.trim();
+  showLinks(tagFilter);
 }
 
 // Renderizar enlace
@@ -143,12 +146,10 @@ function navigate(view, linkId = null) {
         <input type="text" id="tag-filter" placeholder="Filtrar por etiqueta" />
         <div id="links-container"></div>
         <button id="save-link-button">Añadir enlace</button>
-        `;
+      `;
         
-      showLinks();
-      document.getElementById("tag-filter").addEventListener("input", (event) => {
-        showLinks(event.target.value);
-      });
+      showLinks(); 
+      document.getElementById("tag-filter").addEventListener("input", filterLinks);
       document.getElementById("save-link-button").onclick = () => navigate("savelink");
       break;
 
@@ -167,7 +168,6 @@ function navigate(view, linkId = null) {
       loadLinkDetails(linkId);
       document.getElementById("submitComment").onclick = () => commentLink(linkId);
       document.getElementById("voteButton").onclick = () => voteLink(linkId);
-
       break;
 
     case "savelink":
