@@ -19,13 +19,30 @@ async function showLinks(tagFilter = '') {
   linksContainer.innerHTML = links.length
     ? links.map(link => renderLink(link)).join("")
     : "<p>No se encontraron enlaces.</p>";
-
+  console.log(links)
+  return links
 }
 
-function filterLinks() {
+async function filterLinks() {
   const tagFilter = document.getElementById("tag-filter").value.trim();
-  showLinks(tagFilter);
+  console.log('Se filtra:', tagFilter);
+
+  try {
+    // Esperamos la resolución de la Promesa que devuelve showLinks
+    const existingsLinks = await showLinks(tagFilter);
+    console.log(existingsLinks); 
+    console.log(existingsLinks.length);
+  } catch (error) {
+    console.error('Error al filtrar los enlaces:', error);
+  }
 }
+
+
+function copiarEnlace(linkUrl) {
+    console.log('Link copiado')
+    navigator.clipboard.writeText(linkUrl)
+}
+
 
 // Renderizar enlace
 function renderLink(link) {
@@ -35,6 +52,7 @@ function renderLink(link) {
       <p><a href="${link.url}" target="_blank">${link.url}</a></p>
       <p>${link.description}</p>
       <p><strong>Tags:</strong> ${link.tags?.join(", ") || "Sin etiquetas"}</p>
+      <button onclick="copiarEnlace('${link.url}')">Copiar</button>
       <button onclick="navigate('details', '${link._id}')">Ver detalles</button>
     </div>`;
 }
